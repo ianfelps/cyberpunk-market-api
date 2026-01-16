@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cyberpunk-market-api", "cyberpunk-market-api.csproj", "{056B3798-97EB-09C4-463C-2DEA9AF2D902}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{056B3798-97EB-09C4-463C-2DEA9AF2D902}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{056B3798-97EB-09C4-463C-2DEA9AF2D902}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{056B3798-97EB-09C4-463C-2DEA9AF2D902}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{056B3798-97EB-09C4-463C-2DEA9AF2D902}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CFA944B2-E051-45A9-8273-07E9D6A6452B}
+	EndGlobalSection
+EndGlobal

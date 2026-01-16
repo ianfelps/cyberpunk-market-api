@@ -1,0 +1,6 @@
+@cyberpunk_market_api_HostAddress = http://localhost:5202
+
+GET {{cyberpunk_market_api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
