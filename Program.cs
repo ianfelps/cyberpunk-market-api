@@ -9,12 +9,28 @@ using cyberpunk_market_api.src.services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (string.IsNullOrEmpty(connectionString))
+    throw new InvalidOperationException("Preencha ConnectionStrings:DefaultConnection em appsettings.json (copie de appsettings.Example.json).");
+
+var jwtKey = builder.Configuration["Jwt:Key"];
+if (string.IsNullOrEmpty(jwtKey))
+    throw new InvalidOperationException("Preencha Jwt:Key em appsettings.json (copie de appsettings.Example.json).");
+
+var jwtIssuer = builder.Configuration["Jwt:Issuer"];
+var jwtAudience = builder.Configuration["Jwt:Audience"];
+if (string.IsNullOrEmpty(jwtIssuer) || string.IsNullOrEmpty(jwtAudience))
+    throw new InvalidOperationException("Preencha Jwt:Issuer e Jwt:Audience em appsettings.json (copie de appsettings.Example.json).");
+
+var allowedOrigins = builder.Configuration.GetSection("CORS:AllowedOrigins").Get<string[]>();
+if (allowedOrigins == null || allowedOrigins.Length == 0)
+    throw new InvalidOperationException("Preencha CORS:AllowedOrigins em appsettings.json (copie de appsettings.Example.json).");
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", corsBuilder =>
     {
-        var allowedOrigins = builder.Configuration.GetSection("CORS:AllowedOrigins").Get<string[]>();
-        corsBuilder.WithOrigins(allowedOrigins!);
+        corsBuilder.WithOrigins(allowedOrigins);
         corsBuilder.AllowAnyMethod();
         corsBuilder.AllowAnyHeader();
         corsBuilder.AllowCredentials();
@@ -22,13 +38,6 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddControllers();
-
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-
-if (string.IsNullOrEmpty(connectionString))
-{
-    throw new InvalidOperationException("A string de conexão não foi encontrada no appsettings.json.");
-}
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));

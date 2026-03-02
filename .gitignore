@@ -6,6 +6,10 @@
 # dotenv files
 .env
 
+# appsettings (use appsettings.Example.json as template)
+appsettings.json
+appsettings.Development.json
+
 # User-specific files
 *.rsuser
 *.suo

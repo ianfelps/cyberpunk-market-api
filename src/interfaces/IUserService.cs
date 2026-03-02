@@ -1,18 +1,15 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using cyberpunk_market_api.src.dtos;
 using cyberpunk_market_api.src.responses;
 
-namespace cyberpunk_market_api.src.interfaces
+namespace cyberpunk_market_api.src.interfaces;
+
+public interface IUserService
 {
-    public interface IUserService
-    {
-        Task<List<UserResponse>> GetAllUsers();
-        Task<UserResponse?> GetUserById(int id);
-        Task<UserResponse?> GetUserByEmail(string email);
-        Task<UserResponse> CreateUser(CreateUserDto dto);
-        Task<UserResponse?> UpdateUser(int id, UpdateUserDto dto);
-        Task<bool> DeleteUser(int id);
-        Task<LoginResponse?> Login(LoginDto dto);
-    }
+    Task<ApiResponse<UserResponse>> CreateBuyerAsync(CreateBuyerDto dto);
+    Task<ApiResponse<UserResponse>> CreateSellerAsync(CreateSellerDto dto);
+    Task<ApiResponse<UserResponse?>> GetByIdAsync(Guid id);
+    Task<ApiResponse<IEnumerable<UserResponse>>> GetAllAsync();
+    Task<ApiResponse<UserResponse?>> UpdateAsync(Guid id, UpdateUserDto dto);
+    Task<ApiResponse<object>> DeleteAsync(Guid id);
+    Task<ApiResponse<LoginResponse?>> LoginAsync(LoginDto dto);
 }

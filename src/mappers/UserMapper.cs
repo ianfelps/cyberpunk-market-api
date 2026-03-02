@@ -1,61 +1,42 @@
-using System;
-using cyberpunk_market_api.src.models;
+using CyberpunkMarket.Models;
 using cyberpunk_market_api.src.dtos;
 using cyberpunk_market_api.src.responses;
 
-namespace cyberpunk_market_api.src.mappers
+namespace cyberpunk_market_api.src.mappers;
+
+public static class UserMapper
 {
-    public static class UserMapper
+    public static UserResponse ToResponse(User user)
     {
-        public static UserResponse ToUserResponse(Users user)
+        return new UserResponse
         {
-            return new UserResponse
-            {
-                userId = user.userId,
-                username = user.username,
-                fullName = user.fullName,
-                cpf = user.cpf,
-                birthDate = user.birthDate,
-                email = user.email,
-                role = user.role,
-                createdAt = user.createdAt,
-                updatedAt = user.updatedAt
-            };
-        }
+            Id = user.Id,
+            Name = user.Name,
+            Email = user.Email,
+            Role = user.Role,
+            CreatedAt = user.CreatedAt
+        };
+    }
 
-        public static Users ToEntity(CreateUserDto dto, string passwordHash)
+    public static User ToEntity(CreateBuyerDto dto, string passwordHash)
+    {
+        return new User
         {
-            return new Users
-            {
-                username = dto.username,
-                fullName = dto.fullName,
-                cpf = dto.cpf,
-                birthDate = dto.birthDate,
-                email = dto.email.ToLower().Trim(),
-                passwordHash = passwordHash,
-                role = dto.role,
-                createdAt = DateTime.UtcNow
-            };
-        }
+            Name = dto.Name,
+            Email = dto.Email,
+            PasswordHash = passwordHash,
+            Role = UserRole.Buyer
+        };
+    }
 
-        public static void UpdateEntity(Users user, UpdateUserDto dto)
+    public static User ToEntity(CreateSellerDto dto, string passwordHash)
+    {
+        return new User
         {
-            if (!string.IsNullOrEmpty(dto.username))
-                user.username = dto.username;
-
-            if (!string.IsNullOrEmpty(dto.fullName))
-                user.fullName = dto.fullName;
-
-            if (!string.IsNullOrEmpty(dto.cpf))
-                user.cpf = dto.cpf;
-
-            if (dto.birthDate.HasValue)
-                user.birthDate = dto.birthDate.Value;
-
-            if (!string.IsNullOrEmpty(dto.email))
-                user.email = dto.email.ToLower().Trim();
-
-            user.updatedAt = DateTime.UtcNow;
-        }
+            Name = dto.Name,
+            Email = dto.Email,
+            PasswordHash = passwordHash,
+            Role = UserRole.Seller
+        };
     }
 }

@@ -1,17 +1,12 @@
-using System;
+using CyberpunkMarket.Models;
 
-namespace cyberpunk_market_api.src.responses
+namespace cyberpunk_market_api.src.responses;
+
+public class UserResponse
 {
-    public class UserResponse
-    {
-        public int userId { get; set; }
-        public string username { get; set; } = String.Empty;
-        public string fullName { get; set; } = String.Empty;
-        public string cpf { get; set; } = String.Empty;
-        public DateTime birthDate { get; set; }
-        public string email { get; set; } = String.Empty;
-        public int role { get; set; }
-        public DateTime createdAt { get; set; }
-        public DateTime? updatedAt { get; set; }
-    }
+    public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public UserRole Role { get; set; }
+    public DateTime CreatedAt { get; set; }
 }

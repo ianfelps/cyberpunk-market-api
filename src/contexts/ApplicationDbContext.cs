@@ -1,22 +1,38 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using cyberpunk_market_api.src.models;
 using Microsoft.EntityFrameworkCore;
+using CyberpunkMarket.Models;
 
-namespace cyberpunk_market_api.src.contexts
+namespace cyberpunk_market_api.src.contexts;
+
+public class ApplicationDbContext : DbContext
 {
-    public class ApplicationDbContext : DbContext
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
+
+    public DbSet<User> Users => Set<User>();
+    public DbSet<Seller> Sellers => Set<Seller>();
+    public DbSet<Product> Products => Set<Product>();
+    public DbSet<Category> Categories => Set<Category>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> dbContextOptions) : base(dbContextOptions) { }
-
-        public DbSet<Users> users { get; set; }
-        public DbSet<UserRoles> userRoles { get; set; }
-
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        modelBuilder.Entity<User>(entity =>
         {
-            modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
-        }
+            entity.HasIndex(u => u.Email).IsUnique();
+            entity.Property(u => u.Name).HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<Seller>()
+            .HasOne(s => s.User)
+            .WithOne(u => u.SellerProfile)
+            .HasForeignKey<Seller>(s => s.UserId);
+
+        modelBuilder.Entity<Product>(entity =>
+        {
+            entity.Property(p => p.Price).HasPrecision(18, 2);
+            entity.Property(p => p.Name).HasMaxLength(200);
+            entity.HasOne(p => p.Seller)
+                .WithMany(s => s.Products)
+                .HasForeignKey(p => p.SellerId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
     }
 }
