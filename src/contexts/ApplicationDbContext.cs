@@ -19,12 +19,10 @@ public class ApplicationDbContext : DbContext
             entity.HasIndex(u => u.Email).IsUnique();
             entity.Property(u => u.Name).HasMaxLength(100);
         });
-
         modelBuilder.Entity<Seller>()
             .HasOne(s => s.User)
             .WithOne(u => u.SellerProfile)
             .HasForeignKey<Seller>(s => s.UserId);
-
         modelBuilder.Entity<Product>(entity =>
         {
             entity.Property(p => p.Price).HasPrecision(18, 2);
@@ -33,6 +31,23 @@ public class ApplicationDbContext : DbContext
                 .WithMany(s => s.Products)
                 .HasForeignKey(p => p.SellerId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+        modelBuilder.Entity<Order>(entity =>
+        {
+            entity.Property(o => o.TotalAmount).HasPrecision(18, 2);
+            entity.HasOne(o => o.Buyer)
+                .WithMany()
+                .HasForeignKey(o => o.BuyerId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+        modelBuilder.Entity<OrderItem>(entity =>
+        {
+            entity.Property(oi => oi.UnitPrice).HasPrecision(18, 2);
+            entity.Property(oi => oi.Discount).HasPrecision(18, 2);
+            
+            entity.HasOne(oi => oi.Order)
+                .WithMany(o => o.Items)
+                .HasForeignKey(oi => oi.OrderId);
         });
     }
 }

@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using cyberpunk_market_api.src.contexts;
 using cyberpunk_market_api.src.interfaces;
 using cyberpunk_market_api.src.services;
+using Swashbuckle.AspNetCore.Annotations;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -48,8 +49,10 @@ builder.Services.AddSwaggerGen(c =>
     {
         Title = "Cyberpunk Market",
         Version = "v1",
-        Description = "Developed by: [ianfelps](https://github.com/ianfelps)",
+        Description = "API Cyberpunk Market. Developed by: [ianfelps](https://github.com/ianfelps)",
     });
+
+    c.EnableAnnotations();
 
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -116,6 +119,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddHealthChecks();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<JwtService>();
 
 var app = builder.Build();

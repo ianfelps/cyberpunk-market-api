@@ -1,6 +1,6 @@
 # Cyberpunk Market API
 
-API REST em .NET 8 para o marketplace Cyberpunk Market, com autenticação JWT, CRUD de usuários e arquitetura em camadas.
+API REST em .NET 8 para o marketplace Cyberpunk Market, com autenticação JWT, CRUD de usuários e produtos, e arquitetura em camadas.
 
 ---
 
@@ -72,6 +72,8 @@ A API sobe por padrão em `https://localhost:7xxx` (ou porta definida em `launch
 
 ## Endpoints
 
+### Usuários
+
 Base URL: `/api/User`
 
 | Método | Rota | Autenticação | Descrição |
@@ -83,6 +85,18 @@ Base URL: `/api/User`
 | GET    | `/api/User/{id}`   | Sim | Buscar usuário por GUID |
 | PUT    | `/api/User/{id}`   | Sim | Atualizar usuário (campos opcionais) |
 | DELETE | `/api/User/{id}`   | Sim | Remover usuário |
+
+### Produtos
+
+Base URL: `/api/Product`
+
+| Método | Rota | Autenticação | Descrição |
+|--------|------|--------------|-----------|
+| GET    | `/api/Product`        | Sim (Buyer, Seller) | Listar produtos disponíveis |
+| GET    | `/api/Product/{id}`   | Sim (Buyer, Seller) | Buscar produto por GUID |
+| POST   | `/api/Product`        | Sim (Seller)        | Criar novo produto vinculado ao vendedor autenticado |
+| PUT    | `/api/Product/{id}`   | Sim (Seller)        | Atualizar produto do vendedor autenticado |
+| DELETE | `/api/Product/{id}`   | Sim (Seller)        | Remover produto do vendedor autenticado |
 
 ### Autenticação
 
@@ -156,7 +170,3 @@ dotnet build
 ```
 
 ---
-
-## Autor
-
-[ianfelps](https://github.com/ianfelps)

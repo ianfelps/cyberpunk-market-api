@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using cyberpunk_market_api.src.dtos;
 using cyberpunk_market_api.src.interfaces;
 using cyberpunk_market_api.src.responses;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace cyberpunk_market_api.src.controllers;
 
@@ -19,6 +20,7 @@ public class UserController : ControllerBase
 
     [HttpPost("login")]
     [AllowAnonymous]
+    [SwaggerOperation(Summary = "Login do usuário", Description = "Realiza o login de um usuário e retorna o token JWT.")]
     public async Task<ActionResult<ApiResponse<LoginResponse?>>> Login([FromBody] LoginDto dto)
     {
         var result = await _userService.LoginAsync(dto);
@@ -29,6 +31,7 @@ public class UserController : ControllerBase
 
     [HttpPost("buyer")]
     [AllowAnonymous]
+    [SwaggerOperation(Summary = "Cadastro de comprador", Description = "Cria um novo usuário com perfil de comprador.")]
     public async Task<ActionResult<ApiResponse<UserResponse>>> CreateBuyer([FromBody] CreateBuyerDto dto)
     {
         var result = await _userService.CreateBuyerAsync(dto);
@@ -39,6 +42,7 @@ public class UserController : ControllerBase
 
     [HttpPost("seller")]
     [AllowAnonymous]
+    [SwaggerOperation(Summary = "Cadastro de vendedor", Description = "Cria um novo usuário com perfil de vendedor.")]
     public async Task<ActionResult<ApiResponse<UserResponse>>> CreateSeller([FromBody] CreateSellerDto dto)
     {
         var result = await _userService.CreateSellerAsync(dto);
@@ -49,6 +53,7 @@ public class UserController : ControllerBase
 
     [HttpGet]
     [Authorize]
+    [SwaggerOperation(Summary = "Listar usuários", Description = "Retorna a lista de todos os usuários cadastrados.")]
     public async Task<ActionResult<ApiResponse<IEnumerable<UserResponse>>>> GetAll()
     {
         var result = await _userService.GetAllAsync();
@@ -57,6 +62,7 @@ public class UserController : ControllerBase
 
     [HttpGet("{id:guid}")]
     [Authorize]
+    [SwaggerOperation(Summary = "Buscar usuário por ID", Description = "Busca um usuário específico pelo seu identificador único.")]
     public async Task<ActionResult<ApiResponse<UserResponse?>>> GetById(Guid id)
     {
         var result = await _userService.GetByIdAsync(id);
@@ -67,6 +73,7 @@ public class UserController : ControllerBase
 
     [HttpPut("{id:guid}")]
     [Authorize]
+    [SwaggerOperation(Summary = "Atualizar usuário", Description = "Atualiza os dados de um usuário existente.")]
     public async Task<ActionResult<ApiResponse<UserResponse?>>> Update(Guid id, [FromBody] UpdateUserDto dto)
     {
         var result = await _userService.UpdateAsync(id, dto);
@@ -77,6 +84,7 @@ public class UserController : ControllerBase
 
     [HttpDelete("{id:guid}")]
     [Authorize]
+    [SwaggerOperation(Summary = "Remover usuário", Description = "Remove um usuário existente pelo seu identificador único.")]
     public async Task<ActionResult<ApiResponse<object>>> Delete(Guid id)
     {
         var result = await _userService.DeleteAsync(id);
