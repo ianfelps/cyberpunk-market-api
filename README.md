@@ -70,6 +70,10 @@ dotnet run
 
 A API sobe por padrão em `https://localhost:7xxx` (ou porta definida em `launchSettings.json`). Documentação Swagger: `https://localhost:<porta>/swagger`.
 
+### Popular o banco com dados de exemplo
+
+Após criar o banco e aplicar as migrations, você pode popular com dados iniciais executando o script `scripts/populate_database.sql` diretamente no SQL Server.
+
 ---
 
 ## Endpoints
@@ -147,6 +151,27 @@ Base URL: `/api/Wishlist` (requer autenticação Buyer ou Seller)
 | PUT    | `/api/Wishlist/{id}`     | Atualizar item da wishlist (ex.: `notifyOnPriceDrop`) |
 | DELETE | `/api/Wishlist/{id}`     | Remover item da wishlist |
 
+### Pedidos (Order)
+
+Base URL: `/api/Order` (requer autenticação Buyer ou Seller)
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| GET    | `/api/Order`            | Listar pedidos do usuário autenticado (paginado). Query: `page`, `pageSize`, `status` (1=Pending, 2=Paid, 3=Shipped, 4=Completed, 5=Canceled) |
+| GET    | `/api/Order/{id}`       | Buscar pedido por GUID (apenas do usuário autenticado) |
+| POST   | `/api/Order`            | Criar pedido a partir do carrinho (`shippingAddressId`, `paymentMethod`) |
+| POST   | `/api/Order/{id}/cancel`| Cancelar pedido pendente do usuário autenticado |
+
+### Pagamentos (Payment)
+
+Base URL: `/api/Payment` (requer autenticação Buyer ou Seller)
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| GET    | `/api/Payment/{orderId}`          | Buscar informações de pagamento de um pedido do usuário autenticado |
+| POST   | `/api/Payment/{orderId}/complete` | Marcar pagamento como concluído (`externalId` opcional via query) |
+| POST   | `/api/Payment/{orderId}/fail`     | Marcar pagamento como falho (`externalId` opcional via query) |
+
 ### Autenticação
 
 Rotas protegidas exigem o header:
@@ -174,6 +199,7 @@ Filtros por recurso:
 | Product   | `name`, `categoryId`, `minPrice`, `maxPrice`, `isActive` |
 | Address   | `city`, `zipCode` |
 | Review    | `productId` (obrigatório), `minRating`, `maxRating` (1–5) |
+| Order     | `status` (1=Pending, 2=Paid, 3=Shipped, 4=Completed, 5=Canceled) |
 
 ---
 
@@ -196,7 +222,9 @@ Filtros por recurso:
 - **Cart**: UserId, relação 1:N com **CartItem**
 - **CartItem**: CartId, ProductId, Quantity
 - **WishlistItem**: UserId, ProductId, NotifyOnPriceDrop; índice único (UserId, ProductId)
-- **Order**, **OrderItem**, **Payment** (modelos existentes; endpoints a implementar)
+- **Order**: BuyerId, ShippingAddressId, OrderDate, TotalAmount, Status; relação 1:N com **OrderItem** e 1:1 com **Payment**
+- **OrderItem**: OrderId, ProductId, Quantity, UnitPrice, Discount
+- **Payment**: OrderId, Amount, Method (enum: CreditCard, DebitCard, Pix, BankTransfer), Status (enum: Pending, Completed, Failed, Refunded), ExternalId, PaidAt
 
 O contexto usa Fluent API (índice único em `User.Email`, precisão em `Product.Price`, `OnDelete.Restrict`/`Cascade` conforme o caso).
 
@@ -275,11 +303,15 @@ dotnet build
 - **Autenticação**: JWT Bearer com validação de emissor, audiência e chave; token também aceito via cookie `accessToken` para integração com frontend.
 - **Senhas**: BCrypt para hash; não há exposição de senha em resposta ou log.
 - **Respostas da API**: Todas as rotas retornam `ApiResponse<T>` com `success`, `message`, `data` e `errors`, permitindo tratamento uniforme no cliente.
-- **DTOs por entidade**: DTOs organizados em subpastas (`dtos/User`, `dtos/Product`, `dtos/Address`, `dtos/Review`) para separação por domínio.
+- **DTOs por entidade**: DTOs organizados em subpastas (`dtos/User`, `dtos/Product`, `dtos/Address`, `dtos/Review`, `dtos/Cart`, `dtos/Wishlist`, `dtos/Order`) para separação por domínio.
 - **Entity Framework**: Fluent API para configuração (índices, precisão decimal, relacionamentos e `OnDelete`). Uso de `Restrict` em FKs críticas (ex.: Order → User, Address → User) para evitar exclusão em cascata indesejada; `Cascade` apenas onde faz sentido (ex.: Review → Product).
 - **Exclusão de usuário**: Verificação explícita de dependentes (pedidos, endereços, carrinho, avaliações, lista de desejos, perfil vendedor com produtos) antes de permitir exclusão; mensagens de erro específicas para cada caso.
 - **Endereço padrão**: Ao marcar um endereço como `IsDefault`, os demais do mesmo usuário são atualizados para não padrão no serviço de endereços.
 - **Paginação**: Listagens usam `page` e `pageSize` (máx. 50), com resposta `PagedResponse<T>`; filtros por recurso via query string.
 - **Rate limiting**: Limite global por IP (100 req/min); política mais restritiva (20 req/min) em login e cadastro.
+- **Arquitetura em camadas**: Controllers expõem apenas as rotas HTTP; regras de negócio ficam em services (`src/services`), que implementam interfaces (`src/interfaces`) e conversões entre domínio/DTO/response são centralizadas em mappers (`src/mappers`). Entidades de domínio vivem em `src/models` e não conhecem web ou banco diretamente.
+- **Organização por contexto**: Cada área funcional (usuários, produtos, endereços, avaliações, carrinho, wishlist, pedidos, pagamentos) possui DTOs, services, interfaces e, quando necessário, mappers e responses específicos, mantendo baixo acoplamento e facilitando evolução isolada.
+- **Fluxo de checkout**: O carrinho (`Cart`) é a origem dos itens do pedido; o serviço de pedidos cria `Order` + `OrderItem` + `Payment` a partir do carrinho, limpa o carrinho após a criação e controla estados de pedido/pagamento (por exemplo, apenas pedidos `Pending` podem ser cancelados).
+- **Estados de pedido e pagamento**: Os enums `OrderStatus` e `PaymentStatus` modelam o ciclo de vida; o serviço de pagamento sincroniza o status do pedido com o resultado do pagamento (ex.: pagamento concluído muda pedido para `Paid`, falha em pagamento pendente pode cancelar o pedido).
 
 ---
