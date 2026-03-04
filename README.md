@@ -78,7 +78,7 @@ Após criar o banco e aplicar as migrations, você pode popular com dados inicia
 
 ## Endpoints
 
-### Usuários
+### Usuários (User)
 
 Base URL: `/api/User`
 
@@ -92,7 +92,7 @@ Base URL: `/api/User`
 | PUT    | `/api/User/{id}`   | Sim | Atualizar usuário (campos opcionais) |
 | DELETE | `/api/User/{id}`   | Sim | Remover usuário |
 
-### Produtos
+### Produtos (Product)
 
 Base URL: `/api/Product`
 
@@ -104,7 +104,7 @@ Base URL: `/api/Product`
 | PUT    | `/api/Product/{id}`   | Sim (Seller)        | Atualizar produto do vendedor autenticado |
 | DELETE | `/api/Product/{id}`   | Sim (Seller)        | Remover produto do vendedor autenticado |
 
-### Endereços
+### Endereços (Address)
 
 Base URL: `/api/Address` (requer autenticação Buyer ou Seller)
 
@@ -116,7 +116,7 @@ Base URL: `/api/Address` (requer autenticação Buyer ou Seller)
 | PUT    | `/api/Address/{id}`   | Atualizar endereço |
 | DELETE | `/api/Address/{id}`   | Remover endereço |
 
-### Avaliações
+### Avaliações (Review)
 
 Base URL: `/api/Review`
 
@@ -140,7 +140,7 @@ Base URL: `/api/Cart` (requer autenticação Buyer ou Seller)
 | DELETE | `/api/Cart/items/{id}`    | Remover item específico do carrinho |
 | DELETE | `/api/Cart`               | Esvaziar carrinho (remover todos os itens) |
 
-### Wishlist
+### Lista de Desejos (Wishlist)
 
 Base URL: `/api/Wishlist` (requer autenticação Buyer ou Seller)
 
@@ -210,7 +210,7 @@ Filtros por recurso:
 
 ---
 
-## Modelo de dados (resumo)
+## Modelo de dados (Resumo)
 
 - **BaseEntity**: `Id` (Guid), `CreatedAt`, `UpdatedAt`
 - **User**: Name, Email, PasswordHash, Role (enum: Buyer, Seller); relação opcional 1:1 com **Seller**
