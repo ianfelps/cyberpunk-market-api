@@ -21,7 +21,7 @@ API REST em .NET 8 para o marketplace Cyberpunk Market, com autenticação JWT, 
 ```
 cyberpunk-market-api/
 ├── Program.cs                 # Bootstrap, DI, middleware
-├── appsettings.Example.json   # Modelo de configuração (copiar para appsettings.json; appsettings está no .gitignore)
+├── appsettings.Example.json   # Modelo de configuração (copiar para appsettings.json)
 ├── src/
 │   ├── constants/             # Constantes (ex.: paginação)
 │   ├── controllers/           # Controllers da API (rotas por recurso)
@@ -124,6 +124,29 @@ Base URL: `/api/Review`
 | PUT    | `/api/Review/{id}`   | Sim (Buyer, Seller) | Atualizar própria avaliação |
 | DELETE | `/api/Review/{id}`   | Sim (Buyer, Seller) | Remover própria avaliação |
 
+### Carrinho (Cart)
+
+Base URL: `/api/Cart` (requer autenticação Buyer ou Seller)
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| GET    | `/api/Cart`               | Obter carrinho atual do usuário autenticado |
+| POST   | `/api/Cart/items`         | Adicionar item ao carrinho (`productId`, `quantity`) |
+| PUT    | `/api/Cart/items/{id}`    | Atualizar quantidade de um item do carrinho (`quantity`; `0` remove o item) |
+| DELETE | `/api/Cart/items/{id}`    | Remover item específico do carrinho |
+| DELETE | `/api/Cart`               | Esvaziar carrinho (remover todos os itens) |
+
+### Wishlist
+
+Base URL: `/api/Wishlist` (requer autenticação Buyer ou Seller)
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| GET    | `/api/Wishlist`          | Listar itens da wishlist do usuário autenticado |
+| POST   | `/api/Wishlist`          | Adicionar produto à wishlist (`productId`, `notifyOnPriceDrop`) |
+| PUT    | `/api/Wishlist/{id}`     | Atualizar item da wishlist (ex.: `notifyOnPriceDrop`) |
+| DELETE | `/api/Wishlist/{id}`     | Remover item da wishlist |
+
 ### Autenticação
 
 Rotas protegidas exigem o header:
@@ -170,7 +193,10 @@ Filtros por recurso:
 - **Product**: Name, Description, Price, StockQuantity, IsActive; FKs para Seller e Category
 - **Address**: UserId, Street, Number, Complement, Neighborhood, City, State, ZipCode, IsDefault
 - **Review**: UserId, ProductId, Rating (1–5), Comment; índice único (UserId, ProductId)
-- **Order**, **OrderItem**, **Cart**, **CartItem**, **WishlistItem**, **Payment** (modelos existentes; endpoints a implementar)
+- **Cart**: UserId, relação 1:N com **CartItem**
+- **CartItem**: CartId, ProductId, Quantity
+- **WishlistItem**: UserId, ProductId, NotifyOnPriceDrop; índice único (UserId, ProductId)
+- **Order**, **OrderItem**, **Payment** (modelos existentes; endpoints a implementar)
 
 O contexto usa Fluent API (índice único em `User.Email`, precisão em `Product.Price`, `OnDelete.Restrict`/`Cascade` conforme o caso).
 
