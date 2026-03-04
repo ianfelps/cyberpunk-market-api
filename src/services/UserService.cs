@@ -1,5 +1,6 @@
+using cyberpunk_market_api.src.constants;
 using cyberpunk_market_api.src.contexts;
-using cyberpunk_market_api.src.dtos;
+using cyberpunk_market_api.src.dtos.User;
 using cyberpunk_market_api.src.interfaces;
 using cyberpunk_market_api.src.mappers;
 using cyberpunk_market_api.src.responses;
@@ -59,11 +60,35 @@ public class UserService : IUserService
         return ApiResponse<UserResponse?>.Success(UserMapper.ToResponse(user));
     }
 
-    public async Task<ApiResponse<IEnumerable<UserResponse>>> GetAllAsync()
+    public async Task<ApiResponse<PagedResponse<UserResponse>>> GetAllAsync(int page, int pageSize, string? name, string? email, UserRole? role)
     {
-        var users = await _context.Users.ToListAsync();
-        var response = users.Select(UserMapper.ToResponse);
-        return ApiResponse<IEnumerable<UserResponse>>.Success(response);
+        if (page < 1) page = 1;
+        if (pageSize < 1) pageSize = PaginationConstants.DefaultPageSize;
+        if (pageSize > PaginationConstants.MaxPageSize) pageSize = PaginationConstants.MaxPageSize;
+        var query = _context.Users.AsQueryable();
+        if (!string.IsNullOrWhiteSpace(name))
+            query = query.Where(u => u.Name.Contains(name));
+        if (!string.IsNullOrWhiteSpace(email))
+            query = query.Where(u => u.Email.Contains(email));
+        if (role.HasValue)
+            query = query.Where(u => u.Role == role.Value);
+        var totalCount = await query.CountAsync();
+        var users = await query
+            .OrderBy(u => u.Name)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+        var items = users.Select(UserMapper.ToResponse);
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+        var paged = new PagedResponse<UserResponse>
+        {
+            Items = items,
+            TotalCount = totalCount,
+            Page = page,
+            PageSize = pageSize,
+            TotalPages = totalPages
+        };
+        return ApiResponse<PagedResponse<UserResponse>>.Success(paged);
     }
 
     public async Task<ApiResponse<UserResponse?>> UpdateAsync(Guid id, UpdateUserDto dto)
@@ -94,6 +119,29 @@ public class UserService : IUserService
         var user = await _context.Users.FindAsync(id);
         if (user == null)
             return ApiResponse<object>.Fail("Usuário não encontrado.");
+        var seller = await _context.Sellers.FirstOrDefaultAsync(s => s.UserId == id);
+        if (seller != null)
+        {
+            var hasProducts = await _context.Products.AnyAsync(p => p.SellerId == seller.Id);
+            if (hasProducts)
+                return ApiResponse<object>.Fail("Não é possível excluir usuário com perfil de vendedor que possui produtos.");
+            _context.Sellers.Remove(seller);
+        }
+        var hasOrders = await _context.Orders.AnyAsync(o => o.BuyerId == id);
+        if (hasOrders)
+            return ApiResponse<object>.Fail("Não é possível excluir usuário com pedidos associados.");
+        var hasAddresses = await _context.Addresses.AnyAsync(a => a.UserId == id);
+        if (hasAddresses)
+            return ApiResponse<object>.Fail("Não é possível excluir usuário com endereços cadastrados.");
+        var hasCart = await _context.Carts.AnyAsync(c => c.UserId == id);
+        if (hasCart)
+            return ApiResponse<object>.Fail("Não é possível excluir usuário com carrinho ativo.");
+        var hasReviews = await _context.Reviews.AnyAsync(r => r.UserId == id);
+        if (hasReviews)
+            return ApiResponse<object>.Fail("Não é possível excluir usuário com avaliações realizadas.");
+        var hasWishlist = await _context.WishlistItems.AnyAsync(w => w.UserId == id);
+        if (hasWishlist)
+            return ApiResponse<object>.Fail("Não é possível excluir usuário com itens na lista de desejos.");
         _context.Users.Remove(user);
         await _context.SaveChangesAsync();
         return ApiResponse<object>.Success(new { }, "Usuário removido com sucesso.");

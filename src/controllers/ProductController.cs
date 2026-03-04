@@ -1,7 +1,8 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using cyberpunk_market_api.src.dtos;
+using cyberpunk_market_api.src.constants;
+using cyberpunk_market_api.src.dtos.Product;
 using cyberpunk_market_api.src.interfaces;
 using cyberpunk_market_api.src.responses;
 using Swashbuckle.AspNetCore.Annotations;
@@ -21,10 +22,17 @@ public class ProductController : ControllerBase
 
     [HttpGet]
     [Authorize(Roles = "Buyer,Seller")]
-    [SwaggerOperation(Summary = "Listar produtos", Description = "Retorna a lista de produtos disponíveis para compradores e vendedores.")]
-    public async Task<ActionResult<ApiResponse<IEnumerable<ProductResponse>>>> GetAll()
+    [SwaggerOperation(Summary = "Listar produtos", Description = "Retorna a lista paginada de produtos. Filtros: name, categoryId, minPrice, maxPrice, isActive. Query: page, pageSize.")]
+    public async Task<ActionResult<ApiResponse<PagedResponse<ProductResponse>>>> GetAll(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = PaginationConstants.DefaultPageSize,
+        [FromQuery] string? name = null,
+        [FromQuery] Guid? categoryId = null,
+        [FromQuery] decimal? minPrice = null,
+        [FromQuery] decimal? maxPrice = null,
+        [FromQuery] bool? isActive = null)
     {
-        var result = await _productService.GetAllAsync();
+        var result = await _productService.GetAllAsync(page, pageSize, name, categoryId, minPrice, maxPrice, isActive);
         return Ok(result);
     }
 

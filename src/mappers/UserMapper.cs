@@ -1,5 +1,5 @@
 using CyberpunkMarket.Models;
-using cyberpunk_market_api.src.dtos;
+using cyberpunk_market_api.src.dtos.User;
 using cyberpunk_market_api.src.responses;
 
 namespace cyberpunk_market_api.src.mappers;

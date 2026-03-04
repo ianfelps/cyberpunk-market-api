@@ -1,5 +1,6 @@
+using cyberpunk_market_api.src.constants;
 using cyberpunk_market_api.src.contexts;
-using cyberpunk_market_api.src.dtos;
+using cyberpunk_market_api.src.dtos.Product;
 using cyberpunk_market_api.src.interfaces;
 using cyberpunk_market_api.src.mappers;
 using cyberpunk_market_api.src.responses;
@@ -16,11 +17,39 @@ public class ProductService : IProductService
         _context = context;
     }
 
-    public async Task<ApiResponse<IEnumerable<ProductResponse>>> GetAllAsync()
+    public async Task<ApiResponse<PagedResponse<ProductResponse>>> GetAllAsync(int page, int pageSize, string? name, Guid? categoryId, decimal? minPrice, decimal? maxPrice, bool? isActive)
     {
-        var products = await _context.Products.ToListAsync();
-        var response = products.Select(ProductMapper.ToResponse);
-        return ApiResponse<IEnumerable<ProductResponse>>.Success(response);
+        if (page < 1) page = 1;
+        if (pageSize < 1) pageSize = PaginationConstants.DefaultPageSize;
+        if (pageSize > PaginationConstants.MaxPageSize) pageSize = PaginationConstants.MaxPageSize;
+        var query = _context.Products.AsQueryable();
+        if (!string.IsNullOrWhiteSpace(name))
+            query = query.Where(p => p.Name.Contains(name));
+        if (categoryId.HasValue)
+            query = query.Where(p => p.CategoryId == categoryId.Value);
+        if (minPrice.HasValue)
+            query = query.Where(p => p.Price >= minPrice.Value);
+        if (maxPrice.HasValue)
+            query = query.Where(p => p.Price <= maxPrice.Value);
+        if (isActive.HasValue)
+            query = query.Where(p => p.IsActive == isActive.Value);
+        var totalCount = await query.CountAsync();
+        var products = await query
+            .OrderBy(p => p.Name)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+        var items = products.Select(ProductMapper.ToResponse);
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+        var paged = new PagedResponse<ProductResponse>
+        {
+            Items = items,
+            TotalCount = totalCount,
+            Page = page,
+            PageSize = pageSize,
+            TotalPages = totalPages
+        };
+        return ApiResponse<PagedResponse<ProductResponse>>.Success(paged);
     }
 
     public async Task<ApiResponse<ProductResponse?>> GetByIdAsync(Guid id)

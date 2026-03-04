@@ -11,4 +11,5 @@ public class Product : BaseEntity
     public virtual Seller Seller { get; set; } = null!;
     public Guid CategoryId { get; set; }
     public virtual Category Category { get; set; } = null!;
+    public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
 }

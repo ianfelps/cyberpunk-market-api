@@ -1,6 +1,9 @@
+using CyberpunkMarket.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using cyberpunk_market_api.src.dtos;
+using Microsoft.AspNetCore.RateLimiting;
+using cyberpunk_market_api.src.constants;
+using cyberpunk_market_api.src.dtos.User;
 using cyberpunk_market_api.src.interfaces;
 using cyberpunk_market_api.src.responses;
 using Swashbuckle.AspNetCore.Annotations;
@@ -20,6 +23,7 @@ public class UserController : ControllerBase
 
     [HttpPost("login")]
     [AllowAnonymous]
+    [EnableRateLimiting("auth")]
     [SwaggerOperation(Summary = "Login do usuário", Description = "Realiza o login de um usuário e retorna o token JWT.")]
     public async Task<ActionResult<ApiResponse<LoginResponse?>>> Login([FromBody] LoginDto dto)
     {
@@ -31,6 +35,7 @@ public class UserController : ControllerBase
 
     [HttpPost("buyer")]
     [AllowAnonymous]
+    [EnableRateLimiting("auth")]
     [SwaggerOperation(Summary = "Cadastro de comprador", Description = "Cria um novo usuário com perfil de comprador.")]
     public async Task<ActionResult<ApiResponse<UserResponse>>> CreateBuyer([FromBody] CreateBuyerDto dto)
     {
@@ -42,6 +47,7 @@ public class UserController : ControllerBase
 
     [HttpPost("seller")]
     [AllowAnonymous]
+    [EnableRateLimiting("auth")]
     [SwaggerOperation(Summary = "Cadastro de vendedor", Description = "Cria um novo usuário com perfil de vendedor.")]
     public async Task<ActionResult<ApiResponse<UserResponse>>> CreateSeller([FromBody] CreateSellerDto dto)
     {
@@ -53,10 +59,15 @@ public class UserController : ControllerBase
 
     [HttpGet]
     [Authorize]
-    [SwaggerOperation(Summary = "Listar usuários", Description = "Retorna a lista de todos os usuários cadastrados.")]
-    public async Task<ActionResult<ApiResponse<IEnumerable<UserResponse>>>> GetAll()
+    [SwaggerOperation(Summary = "Listar usuários", Description = "Retorna a lista paginada de usuários. Filtros: name, email, role. Query: page, pageSize.")]
+    public async Task<ActionResult<ApiResponse<PagedResponse<UserResponse>>>> GetAll(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = PaginationConstants.DefaultPageSize,
+        [FromQuery] string? name = null,
+        [FromQuery] string? email = null,
+        [FromQuery] UserRole? role = null)
     {
-        var result = await _userService.GetAllAsync();
+        var result = await _userService.GetAllAsync(page, pageSize, name, email, role);
         return Ok(result);
     }
 

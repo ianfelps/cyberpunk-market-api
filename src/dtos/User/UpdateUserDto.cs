@@ -1,6 +1,6 @@
 using CyberpunkMarket.Models;
 
-namespace cyberpunk_market_api.src.dtos;
+namespace cyberpunk_market_api.src.dtos.User;
 
 public class UpdateUserDto
 {
