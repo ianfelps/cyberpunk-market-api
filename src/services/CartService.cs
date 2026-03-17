@@ -47,11 +47,8 @@ public class CartService : ICartService
         var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == dto.ProductId && p.IsActive);
         if (product == null)
             return ApiResponse<CartResponse>.Fail("Produto não encontrado.");
-        var cart = await _context.Carts
-            .Include(c => c.Items)
-            .ThenInclude(i => i.Product)
-            .FirstOrDefaultAsync(c => c.UserId == userId);
-        if (cart == null)
+        var cart = await _context.Carts.FirstOrDefaultAsync(c => c.UserId == userId);
+        if (cart is null)
         {
             cart = new Cart
             {
@@ -59,12 +56,9 @@ public class CartService : ICartService
             };
             _context.Carts.Add(cart);
             await _context.SaveChangesAsync();
-            cart = await _context.Carts
-                .Include(c => c.Items)
-                .ThenInclude(i => i.Product)
-                .FirstAsync(c => c.Id == cart.Id);
         }
-        var existingItem = cart.Items.FirstOrDefault(i => i.ProductId == dto.ProductId);
+        var existingItem = await _context.CartItems
+            .FirstOrDefaultAsync(i => i.CartId == cart.Id && i.ProductId == dto.ProductId);
         if (existingItem != null)
         {
             existingItem.Quantity += dto.Quantity;
@@ -75,13 +69,25 @@ public class CartService : ICartService
             {
                 CartId = cart.Id,
                 ProductId = dto.ProductId,
-                Product = product,
                 Quantity = dto.Quantity
             };
-            cart.Items.Add(item);
+            _context.CartItems.Add(item);
         }
-        await _context.SaveChangesAsync();
-        var response = CartMapper.ToResponse(cart);
+
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return ApiResponse<CartResponse>.Fail("O carrinho foi alterado ao mesmo tempo por outra operação. Tente novamente.");
+        }
+
+        var reloadedCart = await _context.Carts
+            .Include(c => c.Items)
+            .ThenInclude(i => i.Product)
+            .FirstAsync(c => c.Id == cart.Id);
+        var response = CartMapper.ToResponse(reloadedCart);
         return ApiResponse<CartResponse>.Success(response, "Item adicionado ao carrinho.");
     }
 
